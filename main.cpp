@@ -17,10 +17,10 @@ int main(char argc, char* argv)
 {
 	Image obj("moon.png", cv::IMREAD_COLOR);
 	Kernel kernel;
-	kernel.setKernelSize(9);
-	kernel.createMedianKernel();
+	kernel.setKernelSize(5);
+	kernel.createGaussianKernel();
 
-	Blur(obj, kernel, Median);
+	Blur(obj, kernel, Gaussian);
 	Canny(obj);
 	
 	cv::imshow("Nacteny obrazek", *obj.image);

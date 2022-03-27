@@ -2,7 +2,6 @@
 
 void Blur(Image& img, Kernel& ker, uchar (&type)(Image&, Kernel&, int&, int&, int, int))
 {
-	// Alokace pamìti pro rozmazaný obrázek
 	img.blurred = new cv::Mat(img.image->cols, img.image->rows, CV_8U);
 
 	for (int y = 0; y < img.blurred->rows; y++)
@@ -61,7 +60,6 @@ uchar Median(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offset
 
 void MedianBlur(Image& img, Kernel& ker)
 {
-	// Alokace pamìti pro rozmazaný obrázek
 	img.blurred = new cv::Mat(img.image->cols, img.image->rows, CV_8U);
 
 	std::vector<int>* values = new std::vector<int>(ker.size);
@@ -93,10 +91,8 @@ void MedianBlur(Image& img, Kernel& ker)
 	}
 }
 
-//Filtr pro odstranìní ostrých jasových pøechodù 
 void GaussianBlur(Image& img, Kernel& ker)
 {
-	// Alokace pamìti pro rozmazaný obrázek
 	img.blurred = new cv::Mat(img.image->cols, img.image->rows, CV_8U);
 
 	for (int y = 0; y < img.blurred->rows; y++)
@@ -108,8 +104,6 @@ void GaussianBlur(Image& img, Kernel& ker)
 
 			for (int k = 0; k < ker.size; k++)
 			{
-				// Pokud se nachází mimo hranice obrázku pøiète 0, 
-				// jinak vypoèítá a pøiète pøíslušnou hodnotu v závislosti na vzdálenosti od støedu jádra
 				pixel_val += x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows ?
 					0 : ker.used_kernel[k] * (double)img.gray_scale->at<uchar>(x + x_offset, y + y_offset);
 

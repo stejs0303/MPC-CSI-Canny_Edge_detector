@@ -3,7 +3,6 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 
-// Tøída, která bude sdružovat všechny obrázky do jednoho objektu
 class Image
 {
 public:
@@ -12,7 +11,6 @@ public:
 	cv::Mat* blurred = nullptr;
 	cv::Mat* edges = nullptr;
 
-	// Naètení obrázku, alokace pamìti a pøevedení na stupnì šedi
 	Image(const std::string& filename, const int flag)
 	{
 		image = new cv::Mat(cv::imread(filename, flag));
@@ -20,7 +18,6 @@ public:
 		cv::cvtColor(*image, *gray_scale, cv::COLOR_BGR2GRAY);
 	}
 
-	// Destruktor
 	~Image()
 	{
 		if (image != nullptr) delete image;
