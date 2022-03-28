@@ -19,7 +19,7 @@ uchar Gaussian(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offs
 	for (int k = 0; k < ker.size; k++)
 	{
 		pixel_val += x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows ?
-			0 : ker.used_kernel[k] * (double)img.gray_scale->at<uchar>(x + x_offset, y + y_offset);
+			0 : ker.kernel->at(k) * (double)img.gray_scale->at<uchar>(x + x_offset, y + y_offset);
 
 		if (x_offset == cv::abs(ker.x_offset))
 		{
@@ -38,7 +38,7 @@ uchar Median(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offset
 {
 	for (int k = 0; k < ker.size; k++)
 	{
-		ker.median_vals->at(k) = x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows ?
+		ker.kernel->at(k) = x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows ?
 			0 : (int)img.gray_scale->at<uchar>(x + x_offset, y + y_offset);
 
 		if (x_offset == cv::abs(ker.x_offset))
@@ -51,13 +51,14 @@ uchar Median(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offset
 			x_offset++;
 		}
 	}
-	std::sort(ker.median_vals->begin(), ker.median_vals->end());
-	return (uchar)((ker.median_vals->at(ker.size / 2) + ker.median_vals->at(ker.size / 2 + 1)) / 2);
+	std::sort(ker.kernel->begin(), ker.kernel->end());
+	return (uchar)((ker.kernel->at(ker.size / 2) + ker.kernel->at(ker.size / 2 + 1)) / 2);
 }
 
 //Old code
 //........................................................................................................
 
+/*
 void MedianBlur(Image& img, Kernel& ker)
 {
 	img.blurred = new cv::Mat(img.image->cols, img.image->rows, CV_8U);
@@ -105,7 +106,7 @@ void GaussianBlur(Image& img, Kernel& ker)
 			for (int k = 0; k < ker.size; k++)
 			{
 				pixel_val += x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows ?
-					0 : ker.used_kernel[k] * (double)img.gray_scale->at<uchar>(x + x_offset, y + y_offset);
+					0 : ker.kernel[k] * (double)img.gray_scale->at<uchar>(x + x_offset, y + y_offset);
 
 				if (x_offset == cv::abs(ker.x_offset))
 				{
@@ -121,3 +122,4 @@ void GaussianBlur(Image& img, Kernel& ker)
 		}
 	}
 }
+*/
