@@ -13,13 +13,16 @@ public:
 	std::vector<double>* kernel = nullptr;
 	int x_offset = 0, y_offset = 0, size = 0;
 
+	std::vector<int> sobel_maskx = { -1, 0, 1, -2, 0, 2, -1, 0, 1 };
+	std::vector<int> sobel_masky = { -1, -2, -1, 0, 0, 0, 1, 2, 1 };
+
 private:
 	bool changed_size = false;
 
 public:
 	void setKernelSize(int dims)
 	{
-		int temp = size;
+		int prev_size = size;
 		switch (dims)
 		{
 		case 3:
@@ -46,12 +49,12 @@ public:
 			std::cout << "Spatne zadany rozmer kernelu." << std::endl;
 			break;
 		}
-		changed_size = size != temp ? true : false;
+		changed_size = size != prev_size ? true : false;
 	}
 
 	void createGaussianKernel(double sigma = 1)
 	{
-		if (kernel != nullptr || changed_size) 
+		if (changed_size)
 		{
 			delete kernel;
 			kernel = new std::vector<double>(size);
@@ -79,8 +82,11 @@ public:
 
 	void createMedianKernel()
 	{
-		if (kernel != nullptr) delete kernel;
-		kernel = new std::vector<double>(size);
+		if (changed_size) 
+		{
+			delete kernel;
+			kernel = new std::vector<double>(size);
+		}
 	}
 
 	~Kernel() {
