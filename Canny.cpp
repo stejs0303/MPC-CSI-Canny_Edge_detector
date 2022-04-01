@@ -40,14 +40,14 @@ void setOffset(int num, int& x_offset, int& y_offset)
 
 void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 {
-	cv::Mat2i* pre_processed = new cv::Mat2i(img.blurred->cols, img.blurred->rows);
+	cv::Mat2i* pre_processed = new cv::Mat2i(img.blurred->rows, img.blurred->cols);
 
 	double Gx = 0, Gy = 0, G = 0, theta = 0;
 	int x_offset = -1, y_offset = -1, x, y;
 
-	auto inBounds = [&]()
+	auto outOfBounds = [&]()
 	{
-		return !(x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows);
+		return x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows;
 	};
 
 	// Urèení intenzity a sklonu hrany
@@ -60,10 +60,10 @@ void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 
 			for (int k = 0; k < ker.sobel_maskx.size(); k++)
 			{
-				if (inBounds())
+				if (!outOfBounds())
 				{
-					Gx += ker.sobel_maskx.at(k) * (float)img.blurred->at<uchar>(x + x_offset, y + y_offset);
-					Gy += ker.sobel_masky.at(k) * (float)img.blurred->at<uchar>(x + x_offset, y + y_offset);
+					Gx += ker.sobel_maskx.at(k) * (float)img.blurred->at<uchar>(y + y_offset, x + x_offset);
+					Gy += ker.sobel_masky.at(k) * (float)img.blurred->at<uchar>(y + y_offset, x + x_offset);
 				}
 				next(x_offset, y_offset);
 			}
@@ -89,14 +89,14 @@ void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 
 			bool dir1 = false, dir2 = false;
 
-			if (inBounds()) 
+			if (!outOfBounds())
 				pre_processed->at<cv::Vec2i>(y, x)[0] > pre_processed->at<cv::Vec2i>(y + y_offset, x + x_offset)[0] ?
 				dir1 = true : dir1 = false;
 
 			x_offset = -x_offset;
 			y_offset = -y_offset;
 
-			if (inBounds())
+			if (!outOfBounds())
 				pre_processed->at<cv::Vec2i>(y, x)[0] > pre_processed->at<cv::Vec2i>(y + y_offset, x + x_offset)[0] ?
 				dir2 = true : dir2 = false;
 
@@ -126,7 +126,7 @@ void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 
 			for (int k = 0; k < ker.sobel_maskx.size(); k++)
 			{
-				if (inBounds() && pre_processed->at<cv::Vec2i>(y + y_offset, x + x_offset)[0] >= 255)
+				if (!outOfBounds() && pre_processed->at<cv::Vec2i>(y + y_offset, x + x_offset)[0] >= 255)
 				{
 					img.edges->at<uchar>(y, x) = 255;
 					break;				

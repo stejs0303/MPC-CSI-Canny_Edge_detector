@@ -16,13 +16,16 @@
 
 int main(char argc, char* argv) 
 {
-	Image img("moon.png", cv::IMREAD_COLOR);
+	//Image img("moon.png", cv::IMREAD_COLOR);
+	Image img("explosion.jpg", cv::IMREAD_COLOR);
 	Kernel kernel;
-	kernel.setKernelSize(3);
-	kernel.createMedianKernel();
+	kernel.setKernelSize(9);
+	kernel.createGaussianKernel();
+	//kernel.createMedianKernel();
 
-	Blur(img, kernel, Median);
-	Canny(img, kernel, 100, 200);
+	Blur(img, kernel, Gaussian);
+	//Blur(img, kernel, Median);
+	Canny(img, kernel, 75, 150);
 
 	cv::imshow("Nacteny obrazek", *img.image);
 	cv::imshow("Cernobily", *img.gray_scale);

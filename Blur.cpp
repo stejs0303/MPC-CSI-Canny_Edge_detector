@@ -29,6 +29,12 @@ uchar Gaussian(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offs
 	double pixel_val = 0;
 	for (int k = 0; k < ker.size; k++)
 	{
+		/*
+		if (x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows)
+			pixel_val += 0;
+		else 
+			pixel_val += ker.kernel->at(k) * (double)img.gray_scale->at<uchar>(y + y_offset, x + x_offset);
+		*/
 		pixel_val += x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows ?
 			0 : ker.kernel->at(k) * (double)img.gray_scale->at<uchar>(y + y_offset, x + x_offset);
 
@@ -41,6 +47,12 @@ uchar Median(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offset
 {
 	for (int k = 0; k < ker.size; k++)
 	{
+		/*
+		if (x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows)
+			ker.kernel->at(k) = 0;
+		else
+			ker.kernel->at(k) = (int)img.gray_scale->at<uchar>(y + y_offset, x + x_offset);
+		*/
 		ker.kernel->at(k) = x + x_offset < 0 || x + x_offset >= img.image->cols || y + y_offset < 0 || y + y_offset >= img.image->rows ?
 			0 : (int)img.gray_scale->at<uchar>(y + y_offset, x + x_offset);
 
