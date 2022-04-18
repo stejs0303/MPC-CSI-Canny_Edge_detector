@@ -3,6 +3,10 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 
+/*
+* Tøída Image naèítá zadaný obrázek a uchovává odkazy na všechny vygenerované obrázky
+*/
+
 class Image
 {
 public:

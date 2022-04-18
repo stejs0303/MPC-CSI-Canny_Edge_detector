@@ -9,4 +9,3 @@ void Blur(Image& img, Kernel& ker, uchar (&type)(Image&, Kernel&, int&, int&, in
 
 uchar Gaussian(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offset);
 uchar Median(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offset);
-uchar Adaptive(Image& img, Kernel& ker, int& x, int& y, int x_offset, int y_offset);

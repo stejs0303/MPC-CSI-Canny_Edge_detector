@@ -7,6 +7,10 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
+/*
+* Tøída kernel obstarává tvorbu jádra konvoluce a nastavování offsetù pro snaší provádìní konvoluce
+*/
+
 class Kernel
 {
 public:
@@ -20,6 +24,7 @@ private:
 	bool changed_size = false;
 
 public:
+	// Nastaví hodnoty velikosti pro následnou alokaci pamìti a offsety
 	void setKernelSize(int dims)
 	{
 		int prev_size = size;
@@ -52,8 +57,10 @@ public:
 		changed_size = size != prev_size ? true : false;
 	}
 
+	// Metoda pro tvorbu Gaussova konvoluèního jádra, pokud sigma není zadána, je rovna 1
 	void createGaussianKernel(double sigma = 1)
 	{
+		// Pokud došlo ke zmìnì velikosti jádra, alokuje se nové místo v pamìti
 		if (changed_size)
 		{
 			delete kernel;
@@ -74,12 +81,14 @@ public:
 			}
 		}
 
+		// Normalizace jádra
 		for (int i = 0; i < size; i++)
 		{
 			kernel->at(i) /= sum;
 		}
 	}
 
+	//Jádro mediánového filtru nelze vytvoøit pøedem, proto se pouze alokuje pamì
 	void createMedianKernel()
 	{
 		if (changed_size) 
