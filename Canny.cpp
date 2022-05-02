@@ -105,6 +105,7 @@ void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 			intensity1 = 0, intensity2 = 0, intensityAvg = 0;
 			dir1b = dir2b = false;
 
+			// Tu by mìla být chyba..
 			//Nastavení offsetù podle sklonu hrany pro výbìr dvou pixelù, ze kterých se interpoluje hodnota intenzity pro tenèení hrany
 			/*
 			*  x2     x1
