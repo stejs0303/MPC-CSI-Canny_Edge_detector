@@ -7,11 +7,8 @@ struct pair
 	int y = 0;
 
 	pair() {};
-	pair(int x_, int y_)
-	{
-		x = x_; y = y_;
-	}
-
+	pair(int x_, int y_) : x(x), y(y) {}
+	
 	pair* operator-= (pair& right) 
 	{
 		this->x = -right.x;
@@ -32,7 +29,7 @@ void next(pair& offset)
 	}
 	else
 	{
-		offset.y++;
+		offset.x++;
 	}
 }
 
@@ -40,7 +37,7 @@ void next(pair& offset)
 void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 {
 	// Objekt ukládá hodnoty intenzity G a sklonu hrany theta pro následné tenèení
-	cv::Mat2f* pre_processed = new cv::Mat2f(img.blurred->rows, img.blurred->cols);
+	cv::Mat2f* intensity_and_slope = new cv::Mat2f(img.blurred->rows, img.blurred->cols);
 
 	double Gx = 0, Gy = 0, G = 0, theta = 0;
 	int x, y;
@@ -72,8 +69,9 @@ void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 
 			G = std::hypot(Gx, Gy);
 			theta = std::atan2(Gy, Gx) * 180/M_PI;
+			theta += theta < 0 ? 180 : 0;
 
-			pre_processed->at<cv::Vec2f>(y,x) = { (float)G, (float)theta };
+			intensity_and_slope->at<cv::Vec2f>(y,x) = { (float)G, (float)theta };
 			img.sobel->at<uchar>(y, x) = (uchar)G;
 		}
 	}
@@ -81,119 +79,125 @@ void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 	// Tenèení hran
 
 	// Vytvoøení kopie objektu intenzity a sklonu hrany
-	cv::Mat2f* pre_processed_copy = new cv::Mat2f(img.blurred->cols, img.blurred->rows);
-	pre_processed->copyTo(*pre_processed_copy);
+	// Dochází k pøepisování hodnot pixelù originálu, což by mohlo ovlivnit hodnoty následujících pixelù
+	cv::Mat2f* intensity_and_slope_cpy = new cv::Mat2f(img.blurred->cols, img.blurred->rows);
+	intensity_and_slope->copyTo(*intensity_and_slope_cpy);
 
-	pair dir1p, dir2p;
-	bool dir1b = false, dir2b = false;
+	pair direction1, direction2;
 	double alpha = 0;
-	int intensity1, intensity2, intensityAvg, intensity;
+	int intensity, intensity1, intensity2;
 
-	for (y = 0; y < pre_processed->rows; y++)
+	for (y = 0; y < intensity_and_slope->rows; y++)
 	{
-		for (x = 0; x < pre_processed->cols; x++)
+		for (x = 0; x < intensity_and_slope->cols; x++)
 		{
 			// Pokud je hodnota pixelu 0, není potøeba tenèit hranu
-			if (pre_processed_copy->at<cv::Vec2f>(y, x)[0] == 0)
+			if (intensity_and_slope_cpy->at<cv::Vec2f>(y, x)[0] == 0)
 			{
-				img.tencena->at<uchar>(y, x) = 0;
+				img.sobel_thin->at<uchar>(y, x) = 0;
 				continue;
 			}
 			
-			theta = pre_processed_copy->at<cv::Vec2f>(y, x)[1];
-			intensity = (int)pre_processed_copy->at<cv::Vec2f>(y, x)[0];
-			intensity1 = 0, intensity2 = 0, intensityAvg = 0;
-			dir1b = dir2b = false;
+			theta = ((int)intensity_and_slope_cpy->at<cv::Vec2f>(y, x)[1] + 90) % 180;
+			intensity = (int)intensity_and_slope_cpy->at<cv::Vec2f>(y, x)[0];
+			intensity1 = 0, intensity2 = 0;
 
-			// Tu by mìla být chyba..
-			//Nastavení offsetù podle sklonu hrany pro výbìr dvou pixelù, ze kterých se interpoluje hodnota intenzity pro tenèení hrany
-			/*
-			*  x2     x1
-			*       \                   60% intenzity x1
-			*	     \                  40% intenzity x2
-			*	  	  x				
-			*          \				
-			*		    \
-			*	     x1	    x2
-			*/
+			/***************************************************************************************
+			* Nastavení offsetù podle sklonu hrany pro výbìr dvou pixelù, ze kterých se interpoluje 
+			* hodnota intenzity pro tenèení hrany
+			* 
+			*				  i2			Intenzita se vypoèítá podle vzorce: 
+			*		   \					x1 = alpha * i2 + (1 - alpha) * i1,
+			*			\	  x1			kde alpha je vzdálenost x1 od i1
+			*	 i1		x\    i1
+			*	 x2		  \
+			*			   \
+			*	 i2	  
+			****************************************************************************************/
 			if (theta < 45)
 			{
-				dir1p.x = dir2p.x = 1;
-				dir1p.y = 0; dir2p.y = -1;
-				alpha = std::sin(theta * M_PI / 180) / 0.70710678;
+				direction1.x = direction2.x = 1;
+				direction1.y = 0; direction2.y = -1;
+				alpha = std::tan(theta * M_PI / 180);
 			}
 			else if (theta >= 45 && theta < 90)
 			{
-				dir1p.x = 0; dir2p.x = 1;
-				dir1p.y = dir2p.y = -1;
-				alpha = std::cos(theta * M_PI / 180) / 0.70710678;
+				direction1.x = 0; direction2.x = 1;
+				direction1.y = direction2.y = -1;
+				alpha = std::tan((90 - theta) * M_PI / 180);
 			}
 			else if (theta >= 90 && theta < 135)
 			{
-				dir1p.x = 0; dir2p.x = -1;
-				dir1p.y = dir2p.y = -1;
-				alpha = std::abs(std::cos(theta * M_PI / 180) / 0.70710678);
+				direction1.x = 0; direction2.x = -1;
+				direction1.y = direction2.y = -1;
+				alpha = std::abs(std::tan((theta - 90) * M_PI / 180));
 			}
 			else
 			{
-				dir1p.x = dir2p.x = -1;
-				dir1p.y = 0; dir2p.y = -1;
-				alpha = std::abs(std::sin(theta * M_PI / 180) / 0.70710678);
+				direction1.x = direction2.x = -1;
+				direction1.y = 0; direction2.y = -1;
+				alpha = std::abs(std::tan(theta * M_PI / 180));
 			}
 
-			if (!outOfBounds(dir1p)) intensity1 = (int)pre_processed_copy->at<cv::Vec2f>(y + dir1p.y, x + dir1p.x)[0];
-			if (!outOfBounds(dir2p)) intensity2 = (int)pre_processed_copy->at<cv::Vec2f>(y + dir2p.y, x + dir2p.x)[0];
+			if (!outOfBounds(direction1)) intensity1 = 
+				(int)intensity_and_slope_cpy->at<cv::Vec2f>(y + direction1.y, x + direction1.x)[0];
+
+			if (!outOfBounds(direction2)) intensity2 = 
+				(int)intensity_and_slope_cpy->at<cv::Vec2f>(y + direction2.y, x + direction2.x)[0];
 
 			// Pokud je intenzita pixelu menší než intenzita interpolované hodnoty v jednom ze smìrù, pixel je potlaèen
 			if (intensity < alpha * intensity2 + (1 - alpha) * intensity1)
 			{
-				pre_processed->at<cv::Vec2f>(y, x) = NULL;
-				img.tencena->at<uchar>(y, x) = (uchar)pre_processed->at<cv::Vec2f>(y, x)[0];
+				intensity_and_slope->at<cv::Vec2f>(y, x) = NULL;
+				img.sobel_thin->at<uchar>(y, x) = (uchar)intensity_and_slope->at<cv::Vec2f>(y, x)[0];
 				continue;
 			}
 
 			// Zmìna offsetù pro výpoèet v opaèném smìru sklonu
-			dir1p -= dir1p;
-			dir2p -= dir2p;
+			direction1 -= direction1;
+			direction2 -= direction2;
 
 			intensity1 = intensity2 = 0;
 
-			if (!outOfBounds(dir1p)) intensity1 = (int)pre_processed_copy->at<cv::Vec2f>(y + dir1p.y, x + dir1p.x)[0];
-			if (!outOfBounds(dir2p)) intensity2 = (int)pre_processed_copy->at<cv::Vec2f>(y + dir2p.y, x + dir2p.x)[0];
+			if (!outOfBounds(direction1)) intensity1 = 
+				(int)intensity_and_slope_cpy->at<cv::Vec2f>(y + direction1.y, x + direction1.x)[0];
+
+			if (!outOfBounds(direction2)) intensity2 = 
+				(int)intensity_and_slope_cpy->at<cv::Vec2f>(y + direction2.y, x + direction2.x)[0];
 
 			if (intensity < alpha * intensity2 + (1 - alpha) * intensity1)
 			{
-				pre_processed->at<cv::Vec2f>(y, x) = NULL;
+				intensity_and_slope->at<cv::Vec2f>(y, x) = NULL;
 			}
 
 			//Pokud je pixel silnìjí než hodnoty intenzity v obou smìrech, je zachován
-			img.tencena->at<uchar>(y, x) = (uchar)pre_processed->at<cv::Vec2f>(y, x)[0];
+			img.sobel_thin->at<uchar>(y, x) = (uchar)intensity_and_slope->at<cv::Vec2f>(y, x)[0];
 		}
 	}
-	delete pre_processed_copy;
+	delete intensity_and_slope_cpy;
 
 	// Prahování
-	for (y = 0; y < pre_processed->rows; y++)
+	for (y = 0; y < intensity_and_slope->rows; y++)
 	{
-		for (x = 0; x < pre_processed->cols; x++)
+		for (x = 0; x < intensity_and_slope->cols; x++)
 		{
 			img.edges->at<uchar>(y, x) = 0;
 
 			// Pokud je intenzita silnìjší než vysoká hranice, je považován za hranu
-			if (pre_processed->at<cv::Vec2f>(y, x)[0] >= high_tres)
+			if (intensity_and_slope->at<cv::Vec2f>(y, x)[0] >= high_tres)
 			{
 				img.edges->at<uchar>(y, x) = 255;
 				continue;
 			}
 			// Pokud je menší než nízká hranice, je potlaèen
-			if (pre_processed->at<cv::Vec2f>(y, x)[0] <= low_tres) 
+			if (intensity_and_slope->at<cv::Vec2f>(y, x)[0] <= low_tres) 
 				continue;
 
 			// Pokud je hodnota vyšší než nízká hranice, ale nižží než vysoká, zkontroluje se osmi-okolí a hledá se pixel, který má hodnotu vyšší než vysoká hranice
 			offset.x = offset.y = -1;
 			for (int k = 0; k < ker.sobel_maskx.size(); k++)
 			{
-				if (!outOfBounds(offset) && pre_processed->at<cv::Vec2f>(y + offset.y, x + offset.x)[0] >= high_tres)
+				if (!outOfBounds(offset) && intensity_and_slope->at<cv::Vec2f>(y + offset.y, x + offset.x)[0] >= high_tres)
 				{
 					img.edges->at<uchar>(y, x) = 255;
 					break;
@@ -203,5 +207,5 @@ void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 		}
 	}
 
-	delete pre_processed;
+	delete intensity_and_slope;
 }

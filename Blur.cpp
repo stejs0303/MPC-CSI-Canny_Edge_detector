@@ -17,13 +17,13 @@ void next(Kernel& ker, int& x_offset, int& y_offset)
 }
 
 // Funkce prochází obraz, pøedává souøadnice do pøíslušného typu konvoluce a ukládá navrácenou hodnotu
-void Blur(Image& img, Kernel& ker, uchar (&type)(Image&, Kernel&, int&, int&, int, int))
+void Blur(Image& img, Kernel& ker, uchar (&filter_type)(Image&, Kernel&, int&, int&, int, int))
 {
 	for (int y = 0; y < img.blurred->rows; y++)
 	{
 		for (int x = 0; x < img.blurred->cols; x++)
 		{
-			img.blurred->at<uchar>(y, x) = type(img, ker, x, y, ker.x_offset, ker.y_offset);
+			img.blurred->at<uchar>(y, x) = filter_type(img, ker, x, y, ker.x_offset, ker.y_offset);
 		}
 	}
 }
