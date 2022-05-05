@@ -28,7 +28,7 @@
 *					   Pokud se však v jeho osmi-okolí silná hrana nenachází, je pixel potlaèen.
 * 
 * Závìr:		Je vidìt, že použití mediánového filtru nám dá lepší výsledek, a však jeho
-*				aplikace je zdlouhavìjší proces než využití Gaussova filtru.
+*				aplikace je pomalejší než pøi využití Gaussova filtru.
 * 
 *				Nejlepší výsledek by jsme pravdìpodobnì dostali pøi použití Adaptivního
 *				Gaussova filtru, který kombinuje vlastnosti obou implementovaných filtrù. Ten 
@@ -46,13 +46,13 @@
 
 // Možnost volby vlastních hodnot + extra obrazy
 
-#define VELIKOST_JADRA 3		// Implementované velikosti jádra jsou 3x3, 5x5, 9x9.
-#define TYP_FILTRU 1			// 1 - Gaussùv filtr, 2 - Mediánový filtr
-#define VELIKOST_SIGMA 1.3		// V pøípadì Gaussova filtru je možné zmìnit hodnotu rozprostøení sigma.
+#define VELIKOST_JADRA 5		// Implementované velikosti jádra jsou 3x3, 5x5, 9x9.
+#define TYP_FILTRU 2			// 1 - Gaussùv filtr, 2 - Mediánový filtr
+#define VELIKOST_SIGMA 1.5		// V pøípadì Gaussova filtru je možné zmìnit hodnotu rozprostøení sigma.
 								// Je vhodné vybírat hodnotu z rozsahu 1 - 2.
 
 #define NIZSI_HRANICE 80		// Nižší hranice pro detekci hran, vhodné volit hodnoty z rozsahu 50 - 120.
-#define VYSSI_HRANICE 150		// Vyšší hranice pro detekci hran, vhodné volit hodnoty z rozsahu 120 - 220.
+#define VYSSI_HRANICE 200		// Vyšší hranice pro detekci hran, vhodné volit hodnoty z rozsahu 120 - 220.
 
 #define EXTRA 0					// 1 - Zobrazí obrazy Sobelova jádra pøed a po tenèení a fotografii 
 								// s aplikovaným rozmazáním.
@@ -89,7 +89,7 @@ int main(char argc, char* argv)
 
 		kernel.createMedianKernel();
 		Blur(image, kernel, Median);
-
+		
 	#endif
 
 	Canny(image, kernel, NIZSI_HRANICE, VYSSI_HRANICE);
@@ -97,11 +97,13 @@ int main(char argc, char* argv)
 #endif
 
 	cv::imshow("Nacteny obrazek", *image.image);
+
 #if EXTRA == 1
 	cv::imshow("blur", *image.blurred);
 	cv::imshow("sobel", *image.sobel);
 	cv::imshow("sobel_thin", *image.sobel_thin);
 #endif
+
 	cv::imshow("hrany", *image.edges);
 
 	cv::waitKey();
