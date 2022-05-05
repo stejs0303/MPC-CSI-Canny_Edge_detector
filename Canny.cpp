@@ -63,7 +63,7 @@ void Canny(Image& img, Kernel& ker, int low_tres, int high_tres)
 				{
 					Gx += ker.sobel_maskx.at(k) * (float)img.blurred->at<uchar>(y + offset.y, x + offset.x);
 					Gy += ker.sobel_masky.at(k) * (float)img.blurred->at<uchar>(y + offset.y, x + offset.x);
-				}
+				} 
 				next(offset);
 			}
 

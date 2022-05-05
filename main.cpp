@@ -39,12 +39,12 @@
 *				2		-		Mediánový konvoluèní filtr, velikost 9x9.
 *				jiné	-		Možnost volby vlastních hodnot.
 * 
-* Konfigurace:	C++14
+* Konfigurace:	Windows SDK 10.0.22000.0, Visual studio v143, C++14, OpenCV v455, Release x64
 **********************************************************************************************/
 
 #define SCENAR 1
 
-// Možnost volby vlastních hodnot
+// Možnost volby vlastních hodnot + extra obrazy
 
 #define VELIKOST_JADRA 3		// Implementované velikosti jádra jsou 3x3, 5x5, 9x9.
 #define TYP_FILTRU 1			// 1 - Gaussùv filtr, 2 - Mediánový filtr
@@ -80,8 +80,8 @@ int main(char argc, char* argv)
 
 	kernel.setKernelSize(VELIKOST_JADRA);
 
-	#if TYP_FILTRU == 1
-		
+	#if TYP_FILTRU == 1	
+
 		kernel.createGaussianKernel(VELIKOST_SIGMA);
 		Blur(image, kernel, Gaussian);
 
@@ -97,13 +97,11 @@ int main(char argc, char* argv)
 #endif
 
 	cv::imshow("Nacteny obrazek", *image.image);
-
 #if EXTRA == 1
 	cv::imshow("blur", *image.blurred);
 	cv::imshow("sobel", *image.sobel);
 	cv::imshow("sobel_thin", *image.sobel_thin);
 #endif
-
 	cv::imshow("hrany", *image.edges);
 
 	cv::waitKey();
