@@ -51,7 +51,7 @@ public:
 			break;
 
 		default:
-			std::cout << "Spatne zadany rozmer kernelu." << std::endl;
+			std::cout << "Spatne zadany rozmer jadra." << std::endl;
 			break;
 		}
 		changed_size = size != prev_size ? true : false;

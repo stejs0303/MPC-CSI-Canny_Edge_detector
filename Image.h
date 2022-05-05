@@ -4,7 +4,7 @@
 #include <opencv2/opencv.hpp>
 
 /*
-* Tøída Image naèítá zadaný obrázek a uchovává odkazy na všechny vygenerované obrázky
+* Tøída Image naèítá zadanou fotografii a uchovává odkazy na všechny vygenerované obrazy
 */
 
 class Image
@@ -14,8 +14,8 @@ public:
 	cv::Mat* gray_scale = nullptr;
 	cv::Mat* blurred = nullptr;
 	cv::Mat* sobel = nullptr;
+	cv::Mat* sobel_thin = nullptr;
 	cv::Mat* edges = nullptr;
-	cv::Mat* tencena = nullptr;
 
 	Image(const std::string& filename, const int flag)
 	{
@@ -24,8 +24,8 @@ public:
 		gray_scale = new cv::Mat(image->rows, image->cols, CV_8U);
 		blurred = new cv::Mat(image->rows, image->cols, CV_8U);
 		sobel = new cv::Mat(image->rows, image->cols, CV_8U);
+		sobel_thin = new cv::Mat(image->rows, image->cols, CV_8U);
 		edges = new cv::Mat(image->rows, image->cols, CV_8U);
-		tencena = new cv::Mat(image->rows, image->cols, CV_8U);
 
 		cv::cvtColor(*image, *gray_scale, cv::COLOR_BGR2GRAY);
 	}
@@ -37,6 +37,6 @@ public:
 		delete blurred;
 		delete sobel;
 		delete edges;
-		delete tencena;
+		delete sobel_thin;
 	}
 };
